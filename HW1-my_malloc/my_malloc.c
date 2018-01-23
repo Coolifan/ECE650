@@ -11,6 +11,8 @@
 #include "my_malloc.h"
 
 void *begin = NULL;
+unsigned long totalheap = 0;
+
 
 block_info *get_newblock(size_t size, block_info *lastblock) {
     block_info *newblock = sbrk(0);
@@ -27,6 +29,7 @@ block_info *get_newblock(size_t size, block_info *lastblock) {
         lastblock->next = newblock; //append the new block
     }
     newblock->isFree = 0;
+    totalheap += size+BLOCK_INFO_SIZE;
     return newblock;
 }
 
@@ -107,6 +110,7 @@ void ff_free(void *ptr) {
         return;
     }
     block_info_ptr->isFree = 1;
+    //  freespace += block_info_ptr->blockSize+BLOCK_INFO_SIZE;
     if (block_info_ptr->prev && block_info_ptr->prev->isFree)
       block_info_ptr = fusion(block_info_ptr->prev);
     if (block_info_ptr->next)
@@ -173,3 +177,18 @@ void bf_free(void *ptr) {
 }   
 
 
+unsigned long get_data_segment_size() {
+  return totalheap;
+}
+
+unsigned long get_data_segment_free_space_size() {
+  unsigned long freespace = 0;
+  block_info * curr = begin;
+  while (curr != NULL) {
+    if (curr->isFree) {
+      freespace += curr->blockSize;
+    }
+    curr = curr->next;
+  }
+  return freespace;
+}
