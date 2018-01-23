@@ -22,7 +22,6 @@ block_info *get_newblock(size_t size, block_info *lastblock) {
     newblock->blockSize = size;
     newblock->next = NULL;
     newblock->prev = lastblock;
-    newblock->blockPtr = newblock+1;
     
     if (lastblock) { // had some blocks before
         lastblock->next = newblock; //append the new block
@@ -46,7 +45,7 @@ void split_block(block_info * b, size_t s) {
   remainder->next = b->next;
   remainder->prev = b;
   remainder->isFree = 1;
-  remainder->blockPtr = remainder+1;
+  
 
   b->blockSize = s;
   b->next = remainder;
@@ -170,27 +169,7 @@ void *bf_malloc(size_t size) {
 }
 
 void bf_free(void *ptr) {
-    if (ptr == NULL) {
-        return;
-    }
-    block_info *block_info_ptr = (block_info *)ptr - 1;
-    if (block_info_ptr->isFree) {
-        fprintf(stderr, "double free!\n");
-        //exit(EXIT_FAILURE);
-	return;
-    }
-    block_info_ptr->isFree = 1;
-    if (block_info_ptr->prev && block_info_ptr->prev->isFree)
-      block_info_ptr = fusion(block_info_ptr->prev);
-    if (block_info_ptr->next)
-      fusion(block_info_ptr);
-    else {
-      //reach the end
-      if (block_info_ptr->prev)
-	block_info_ptr->prev->next = NULL;
-      else //no more block
-	begin = NULL;
-    }
+    ff_free(ptr); //same implementation as before
 }   
 
 

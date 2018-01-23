@@ -16,7 +16,6 @@ typedef struct _block_info {
     struct _block_info *next;
     struct _block_info *prev;
     int isFree;
-    void *blockPtr;
 } block_info;
 
 #define BLOCK_INFO_SIZE sizeof(struct _block_info)
