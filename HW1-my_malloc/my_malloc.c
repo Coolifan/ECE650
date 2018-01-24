@@ -21,15 +21,17 @@ block_info *get_newblock(size_t size, block_info *lastblock) {
         return NULL;
     }
     
-    newblock->blockSize = size;
     newblock->next = NULL;
     newblock->prev = lastblock;
+    newblock->blockSize = size;
     
-    if (lastblock) { // had some blocks before
+    if (lastblock != NULL) { // had some blocks before
         lastblock->next = newblock; //append the new block
     }
     newblock->isFree = 0;
-    totalheap += size+BLOCK_INFO_SIZE;
+    
+    totalheap += size+BLOCK_INFO_SIZE; //policy test counter
+
     return newblock;
 }
 
@@ -42,15 +44,15 @@ block_info *ff_find_free_region(size_t size, block_info **lastblock_ptr) {
     return curr_block;
 }
 
-void split_block(block_info * b, size_t s) {
-  block_info* remainder = (block_info *)((char *)b + BLOCK_INFO_SIZE + s);
-  remainder->blockSize = b->blockSize - BLOCK_INFO_SIZE - s;
+void split_block(block_info * b, size_t size) {
+  block_info* remainder = (block_info *)((char *)b + BLOCK_INFO_SIZE + size); // new meta position
+  
   remainder->next = b->next;
   remainder->prev = b;
+  remainder->blockSize = b->blockSize - BLOCK_INFO_SIZE - size;
   remainder->isFree = 1;
   
-
-  b->blockSize = s;
+  b->blockSize = size;
   b->next = remainder;
   if (remainder->next)
     remainder->next->prev = remainder;
@@ -72,14 +74,14 @@ void *ff_malloc(size_t size) {
     } else { // not the 1st malloc call
         lastblock = begin;
         newblock = ff_find_free_region(size, &lastblock);
-	//
+	
 	if (newblock) {
-	  //maybe split here
+	  // try to split here
 	  if ((newblock->blockSize - size) >= (BLOCK_INFO_SIZE+4))
 	    split_block(newblock, size);
 	  newblock->isFree = 0;
 	} else {
-	  // no fitting block, get a new block
+	  // no proper free space found, get a new block
 	  newblock = get_newblock(size, lastblock);
 	  if (!newblock)
 	    return NULL;
@@ -88,11 +90,11 @@ void *ff_malloc(size_t size) {
     return (newblock+1);
 }
 
-block_info *fusion(block_info * b) {
+block_info *merge_block(block_info * b) {
   if (b->next && b->next->isFree) {
     b->blockSize += (BLOCK_INFO_SIZE + b->next->blockSize);
     b->next = b->next->next;
-    if (b->next)
+    if (b->next != NULL)
       b->next->prev = b;
   }
   return b;
@@ -102,8 +104,9 @@ void ff_free(void *ptr) {
     if (ptr == NULL) {
         return;
     }
+    // find the address of the meta struct
     block_info *block_info_ptr = (block_info *)ptr - 1;
-    //assert(block_info_ptr->block == ptr);
+
     if (block_info_ptr->isFree) {
         fprintf(stderr, "double free!\n");
         //exit(EXIT_FAILURE);
@@ -112,14 +115,14 @@ void ff_free(void *ptr) {
     block_info_ptr->isFree = 1;
     //  freespace += block_info_ptr->blockSize+BLOCK_INFO_SIZE;
     if (block_info_ptr->prev && block_info_ptr->prev->isFree)
-      block_info_ptr = fusion(block_info_ptr->prev);
+      block_info_ptr = merge_block(block_info_ptr->prev);
     if (block_info_ptr->next)
-      fusion(block_info_ptr);
+      merge_block(block_info_ptr);
     else {
-      //reach the end
+      //
       if (block_info_ptr->prev)
 	block_info_ptr->prev->next = NULL;
-      else //no more block
+      else 
 	begin = NULL;
     }
 }   
@@ -158,12 +161,12 @@ void *bf_malloc(size_t size) {
         lastblock = begin;
         newblock = bf_find_free_region(size, &lastblock);
         if (newblock) {
-	  //maybe split here
+	  //try to split here
 	  if ((newblock->blockSize - size) >= (BLOCK_INFO_SIZE+4))
 	    split_block(newblock, size);
 	  newblock->isFree = 0;
 	} else {
-	  // no fitting block, get a new block
+	  // no proper free space found, get a new block
 	  newblock = get_newblock(size, lastblock);
 	  if (!newblock)
 	    return NULL;
@@ -186,7 +189,7 @@ unsigned long get_data_segment_free_space_size() {
   block_info * curr = begin;
   while (curr != NULL) {
     if (curr->isFree) {
-      freespace += curr->blockSize;
+      freespace += curr->blockSize+BLOCK_INFO_SIZE;
     }
     curr = curr->next;
   }
