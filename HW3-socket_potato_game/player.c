@@ -242,7 +242,7 @@ int main (int argc, char * argv[]) {
                     id = num_players - 1;
                 else
                     id = playerID - 1;
-                printf("sending potato to %d\n", id);
+                printf("Sending potato to %d\n", id);
                 comm_status = (int)send(prevPlayerSocket, potato, leng, 0);
                 if (comm_status < 0) {
  		            printErrorMsg("Cannot send potato to left neighbor\n");
