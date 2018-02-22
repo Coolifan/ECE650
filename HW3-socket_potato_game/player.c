@@ -44,7 +44,7 @@ void data_connect_read(char *machine_name) {
     memset(&player, 0, sizeof(player));
     player.sin_family = AF_INET;
     player.sin_port = htons(port_num);
-    memmove(&player.sin_addr.s_addr, player_hostent->h_addr, player_hostent->h_length); 
+    memmove(&player.sin_addr.s_addr, player_hostent->h_addr_list[0], player_hostent->h_length); 
 
     int ifConnected = connect(sockfd_PandM, (struct sockaddr *)&player, sizeof(player));
     if (ifConnected < 0) {
@@ -98,8 +98,8 @@ int main (int argc, char * argv[]) {
 
     char *endptr;
     port_num = (int)strtol(argv[2], &endptr, 10);
-    if (port_num > 65535 || port_num < 1024  || *endptr != '\0') {
-        printErrorMsg("Invalid port number. Valid range: 1024 ~ 65535\n");
+    if (port_num > 51097 || port_num < 51015  || *endptr != '\0') {
+        printErrorMsg("Invalid port number. Valid range: 51015 ~ 51097\n");
     }
 
     data_connect_read(argv[1]);
@@ -161,7 +161,7 @@ int main (int argc, char * argv[]) {
 	        memset(&neighbor, 0, sizeof(neighbor));
             neighbor.sin_family = AF_INET;
             neighbor.sin_port = htons(port);
-	        memmove(&player.sin_addr.s_addr, player_hostent->h_addr, player_hostent->h_length); 
+	        memmove(&player.sin_addr.s_addr, player_hostent->h_addr_list[0], player_hostent->h_length); 
 	        recv_buf = 0;
             received = (int)send(sockfd_PandM, &recv_buf, sizeof(int), 0);
             int ifConnected = connect(prevPlayerSocket, (struct sockaddr *)&neighbor, sizeof(neighbor));

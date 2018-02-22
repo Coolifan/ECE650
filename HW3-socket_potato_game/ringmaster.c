@@ -155,8 +155,8 @@ int main (int argc, char * argv[]) {
     char *endptr2 = NULL;
     char *endptr3 = NULL;
     port_num = (int)strtol(argv[1], &endptr1, 10);
-    if (port_num > 65535 || port_num < 1024 || *endptr1!='\0') {
-        printErrorMsg("Invalid port number. Valid range: 1024 ~ 65535\n");
+    if (port_num > 51097 || port_num < 51015 || *endptr1!='\0') {
+        printErrorMsg("Invalid port number. Valid range: 51015 ~ 51097\n");
     }
     num_players = (int)strtol(argv[2], &endptr2, 10);
     if (num_players < 2 || *endptr2!='\0') {
