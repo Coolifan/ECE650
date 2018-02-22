@@ -1,0 +1,17 @@
+#! /bin/bash
+
+RINGMASTER_HOSTNAME=$1
+RINGMASTER_PORT=$2
+NUM_PLAYERS=$3
+NUM_HOPS=$4
+
+./ringmaster $RINGMASTER_PORT $NUM_PLAYERS $NUM_HOPS &
+
+sleep 2
+
+for (( i=0; i<$NUM_PLAYERS; i++ ))
+do
+    ./player $RINGMASTER_HOSTNAME $RINGMASTER_PORT &
+    done
+
+wait
