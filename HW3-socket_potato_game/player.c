@@ -26,19 +26,19 @@ int playerID;
 int prevPlayerSocket, nextPlayerSocket;
 
 void printErrorMsg(const char *str) {
-    fprintf(stderr, "Error: %s", str);
+    perror(str);
     exit(EXIT_FAILURE);
 }
 
 void data_connect_read(char *machine_name) {
     sockfd_PandM = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd_PandM < 0) {
-        printErrorMsg("Cannot open socket for client\n");
+        printErrorMsg("Cannot open socket for client ");
     }
     
     player_hostent = gethostbyname(machine_name);
     if (player_hostent == NULL) {
-        printErrorMsg("Invalid host name\n");
+        printErrorMsg("Invalid host name ");
     }
     
     memset(&player, 0, sizeof(player));
@@ -48,20 +48,20 @@ void data_connect_read(char *machine_name) {
 
     int ifConnected = connect(sockfd_PandM, (struct sockaddr *)&player, sizeof(player));
     if (ifConnected < 0) {
-        printErrorMsg("Cannot connect to ringmaster\n");
+        printErrorMsg("Cannot connect to ringmaster ");
     }
     // read player ID, # players and # hops
     comm_status = (int)recv(sockfd_PandM, &playerID, sizeof(int), 0);
     if (comm_status < 0) {
-        printErrorMsg("Cannot receive player ID\n");
+        printErrorMsg("Cannot receive player ID ");
     }
     comm_status = (int)recv(sockfd_PandM, &num_players, sizeof(int), 0);
     if (comm_status < 0) {
-        printErrorMsg("Cannot receive total # of players\n");
+        printErrorMsg("Cannot receive total # of players ");
     }
     comm_status = (int)recv(sockfd_PandM, &num_hops, sizeof(int), 0);
     if (comm_status < 0) {
-        printErrorMsg("Cannot receive total # of hops\n");
+        printErrorMsg("Cannot receive total # of hops ");
     }
 }
 
@@ -93,13 +93,15 @@ int findPort() {
 
 int main (int argc, char * argv[]) {
     if (argc != 3) {
-        printErrorMsg("Invalid input argument: Usage: ./player <machine_name> <port_num>\n");
+        fprintf(stderr, "Invalid input argument: Usage: ./player <machine_name> <port_num>\n");
+        exit(EXIT_FAILURE);
     }
 
     char *endptr;
     port_num = (int)strtol(argv[2], &endptr, 10);
     if (port_num > 51097 || port_num < 51015  || *endptr != '\0') {
-        printErrorMsg("Invalid port number. Valid range: 51015 ~ 51097\n");
+        fprintf(stderr, "Invalid port number. Valid range: 51015 ~ 51097\n");
+        exit(EXIT_FAILURE);
     }
 
     data_connect_read(argv[1]);
@@ -108,11 +110,11 @@ int main (int argc, char * argv[]) {
 
     int port = findPort();
     if (port == -1) {
-        printErrorMsg("All ports unavailable\n");
+        printErrorMsg("All ports unavailable ");
     }
     comm_status = (int)send(sockfd_PandM, &port, sizeof(int), 0);
     if (comm_status < 0) {
-        printErrorMsg("Cannot send port info to ringmaster\n");
+        printErrorMsg("Cannot send port info to ringmaster ");
     }
     
     char message[256];
@@ -120,7 +122,7 @@ int main (int argc, char * argv[]) {
         memset(message, 0, 256);
         comm_status = (int)recv(sockfd_PandM, &message, sizeof(message), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot receive message from ringmaster\n");
+            printErrorMsg("Cannot receive message from ringmaster ");
         }
         int recv_buf = 0;
 	    int received;
@@ -131,13 +133,13 @@ int main (int argc, char * argv[]) {
 	        memset(&neighbor, 0, sizeof(neighbor));
             int ifListening = listen(playerSocket, 2);
             if (ifListening < 0) {
-                printErrorMsg("Cannot listen to socket\n");
+                printErrorMsg("Cannot listen to socket ");
             }
             socklen_t len = sizeof(neighbor);
             received = (int)send(sockfd_PandM, &recv_buf, sizeof(int), 0);
             nextPlayerSocket = accept(playerSocket, (struct sockaddr *)&neighbor, &len);
             if (nextPlayerSocket < 0) {
-                printErrorMsg("Cannot accept connection\n");
+                printErrorMsg("Cannot accept connection ");
             }
         } else {
             struct sockaddr_in neighbor;
@@ -152,11 +154,11 @@ int main (int argc, char * argv[]) {
             
             prevPlayerSocket = socket(AF_INET, SOCK_STREAM, 0);
             if (prevPlayerSocket < 0) {
-                printErrorMsg("Cannot crate socket for player\n");
+                printErrorMsg("Cannot crate socket for player ");
             }
             player_hostent = gethostbyname(host);
             if (player_hostent == NULL) {
-                printErrorMsg("Invalid host name\n");
+                printErrorMsg("Invalid host name ");
             }
 	        memset(&neighbor, 0, sizeof(neighbor));
             neighbor.sin_family = AF_INET;
@@ -166,7 +168,7 @@ int main (int argc, char * argv[]) {
             received = (int)send(sockfd_PandM, &recv_buf, sizeof(int), 0);
             int ifConnected = connect(prevPlayerSocket, (struct sockaddr *)&neighbor, sizeof(neighbor));
             if (ifConnected < 0) {
-                printErrorMsg("Cannot conntect to neighbor\n");
+                printErrorMsg("Cannot conntect to neighbor ");
             }
         }
     }
@@ -195,25 +197,25 @@ int main (int argc, char * argv[]) {
         tv.tv_usec = 0;
         comm_status = select(maxfd+1, &rfd, NULL, NULL, &tv);
         if (comm_status < 0) {
-            printErrorMsg("Select\n");
+            printErrorMsg("Select ");
         } else if (comm_status == 0) {
-            printErrorMsg("Select timed out\n");
+            printErrorMsg("Select timed out ");
         }
         
         if (FD_ISSET(sockfd_PandM, &rfd)) {
             comm_status = recv(sockfd_PandM, potato, leng, 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot receive potato\n");
+                printErrorMsg("Cannot receive potato ");
             }
         } else if (FD_ISSET(prevPlayerSocket, &rfd)) {
             comm_status = recv(prevPlayerSocket, potato, leng, 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot receive potato\n");
+                printErrorMsg("Cannot receive potato ");
             }
         } else if (FD_ISSET(nextPlayerSocket, &rfd)) {
             comm_status = recv(nextPlayerSocket, potato, leng, 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot receive potato\n");
+                printErrorMsg("Cannot receive potato ");
             }
         }
         leng = strlen(potato);
@@ -245,7 +247,7 @@ int main (int argc, char * argv[]) {
                 printf("Sending potato to %d\n", id);
                 comm_status = (int)send(prevPlayerSocket, potato, leng, 0);
                 if (comm_status < 0) {
- 		            printErrorMsg("Cannot send potato to left neighbor\n");
+ 		            printErrorMsg("Cannot send potato to left neighbor ");
                 }
             } else if (random_neighbor == 1) {
                 if (playerID == num_players-1)
@@ -255,7 +257,7 @@ int main (int argc, char * argv[]) {
                 printf("Sending potato to %d\n", id);
                 comm_status = (int)send(nextPlayerSocket, potato, leng, 0);
                 if (comm_status < 0) {
-  		            printErrorMsg("Cannot send potato to right neighbor\n");
+  		            printErrorMsg("Cannot send potato to right neighbor ");
                 }
             }
         } else if (num_hops == 1) {
@@ -271,7 +273,7 @@ int main (int argc, char * argv[]) {
 	        leng = strlen(potato);
 	        comm_status = (int)send(sockfd_PandM, potato, leng, 0);
             if (comm_status < 0) {
-	            printErrorMsg("Cannot send potato to master\n");
+	            printErrorMsg("Cannot send potato to master ");
             }
         } else if (num_hops == 0) {
             free(potato);

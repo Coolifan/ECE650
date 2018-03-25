@@ -24,20 +24,20 @@ int i = 0;
 int port_num, num_players, num_hops;
 
 void printErrorMsg(const char *str) {
-    fprintf(stderr, "%s\n", str);
+    perror(str);
     exit(EXIT_FAILURE);
 }
 
 void master_setup() {
     sockfd_master = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd_master == -1) {
-        printErrorMsg("Cannot open socket for ringmaster\n");
+        printErrorMsg("Cannot open socket for ringmaster ");
     }
     
     int yes = 1;
     int ifSetsockopt = setsockopt(sockfd_master, SOL_SOCKET, SO_REUSEADDR|SO_REUSEPORT, &yes, sizeof(yes));
     if (ifSetsockopt == -1) {
-        printErrorMsg("Cannot setsockopt\n");
+        printErrorMsg("Cannot setsockopt ");
     }
     
     struct sockaddr_in master;
@@ -49,12 +49,12 @@ void master_setup() {
     
     int ifBinded = bind(sockfd_master, (struct sockaddr *)&master, sizeof(master));
     if (ifBinded == -1) {
-        printErrorMsg("Cannot bind master socket\n");
+        printErrorMsg("Cannot bind master socket ");
     }
     
     int ifListening = listen(sockfd_master, num_players);
     if (ifListening == -1) {
-        printErrorMsg("Cannot listen to master socket\n");
+        printErrorMsg("Cannot listen to master socket ");
     }
 }
 
@@ -64,29 +64,29 @@ void connection_init(struct client * players) {
         socklen_t addrlen = sizeof(player);
         int sockfd_PandM = accept(sockfd_master, (struct sockaddr *)&player, &addrlen);
         if (sockfd_PandM < 0) {
-            printErrorMsg("Cannot accept connection\n");
+            printErrorMsg("Cannot accept connection ");
         }
         
         comm_status = (int)send(sockfd_PandM, &i, sizeof(int), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot send player ID\n");
+            printErrorMsg("Cannot send player ID ");
         }
         
         comm_status = (int)send(sockfd_PandM, &num_players, sizeof(int), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot send total # of players\n");
+            printErrorMsg("Cannot send total # of players ");
         }
         
         comm_status = (int)send(sockfd_PandM, &num_hops, sizeof(int), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot send total # of hops\n");
+            printErrorMsg("Cannot send total # of hops ");
         }
 
         struct hostent * host_player = gethostbyaddr((char *)&player.sin_addr, sizeof(struct in_addr), AF_INET);        
         int playerPort;
         comm_status = (int)recv(sockfd_PandM, &playerPort, sizeof(int), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot receive port info from player\n");
+            printErrorMsg("Cannot receive port info from player ");
         }
 
         players[i].playerID = i;
@@ -112,13 +112,13 @@ int data_trasfer(struct client *players) {
         return 1;
     }
     
-    ///////hops != 0
+    //
     for (i = 0; i < num_players; i++) {
         memset(message, '\0', 256);
         strcpy(message, "ready");
         comm_status = (int)send(players[i].masterSocket, message, sizeof(message), 0);
         if (comm_status < 0) {
-            printErrorMsg("Cannot send message to player\n");
+            printErrorMsg("Cannot send message to player ");
         }
         
         int recv_buf = 0;
@@ -128,18 +128,18 @@ int data_trasfer(struct client *players) {
         if (i != num_players-1) {
             comm_status = (int)send(players[i+1].masterSocket, message, sizeof(message), 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot send message to next player\n");
+                printErrorMsg("Cannot send message to next player ");
             }
             received = (int)recv(players[i+1].masterSocket, &recv_buf, sizeof(int), 0);
         } else {
             comm_status = (int)send(players[0].masterSocket, message, sizeof(message), 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot send message to next player\n");
+                printErrorMsg("Cannot send message to next player ");
             }
             received = (int)recv(players[0].masterSocket, &recv_buf, sizeof(recv_buf), 0);
         }
         if (received == -1) {
-            printErrorMsg("Cannot receive acknowledgement from player\n");
+            printErrorMsg("Cannot receive acknowledgement from player ");
         }
         printf("Player %d is ready to play\n", i);
     }
@@ -148,7 +148,8 @@ int data_trasfer(struct client *players) {
 
 int main (int argc, char * argv[]) {
     if (argc != 4) {
-        printErrorMsg("Invalid input arguments. Usage: ./ringmaster <port_num> <num_players> <num_hops>\n");
+        fprintf(stderr, "Invalid input arguments. Usage: ./ringmaster <port_num> <num_players> <num_hops>\n");
+        exit(EXIT_FAILURE);
     }
     
     char *endptr1 = NULL;
@@ -156,15 +157,18 @@ int main (int argc, char * argv[]) {
     char *endptr3 = NULL;
     port_num = (int)strtol(argv[1], &endptr1, 10);
     if (port_num > 51097 || port_num < 51015 || *endptr1!='\0') {
-        printErrorMsg("Invalid port number. Valid range: 51015 ~ 51097\n");
+        fprintf(stderr, "Invalid port number. Valid range: 51015 ~ 51097\n");
+        exit(EXIT_FAILURE);
     }
     num_players = (int)strtol(argv[2], &endptr2, 10);
     if (num_players < 2 || *endptr2!='\0') {
-        printErrorMsg("Invalid number of players. Valid range: 1 ~ INT_MAX\n");
+        fprintf(stderr, "Invalid number of players. Valid range: 1 ~ INT_MAX\n");
+        exit(EXIT_FAILURE);
     }
     num_hops = (int)strtol(argv[3], &endptr3, 10);
     if (num_hops > 512 || num_hops < 0 || *endptr3!='\0') {
-        printErrorMsg("Invalid number of hops. Valid range: 0 ~ 512\n");
+        fprintf(stderr, "Invalid number of hops. Valid range: 0 ~ 512\n");
+        exit(EXIT_FAILURE);
     }
     
 
@@ -189,7 +193,7 @@ int main (int argc, char * argv[]) {
     int potato_len = (int)strlen(potato);
     comm_status = (int)send(players[theChosenOne].masterSocket, potato, potato_len, 0);
     if (comm_status < 0) {
-        printErrorMsg("Cannot send the very first hot potato to the chosen one\n");
+        printErrorMsg("Cannot send the very first hot potato to the chosen one");
     }
     
     memset(potato, 0, num_hops*10);
@@ -208,16 +212,16 @@ int main (int argc, char * argv[]) {
     tv.tv_usec = 0;
     comm_status = select(maxfd+1, &rfd, NULL, NULL, &tv);
     if (comm_status < 0) {
-        printErrorMsg("select failed\n");
+        printErrorMsg("select failed");
     } else if (comm_status == 0) {
-        printErrorMsg("select timed out\n");
+        printErrorMsg("select timed out");
     }
     
     for (i = 0; i < num_players; i++) {
         if (FD_ISSET(players[i].masterSocket, &rfd)) {
             comm_status = (int)recv(players[i].masterSocket, potato, num_hops*10, 0);
             if (comm_status < 0) {
-                printErrorMsg("Cannot receive potato\n");
+                printErrorMsg("Cannot receive potato");
             }
             break;
         }
