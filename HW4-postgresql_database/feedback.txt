@@ -1,0 +1,27 @@
+good faith effort	24
+test01	4
+test02	4
+test03	4
+test04	4
+test05	4
+test06	4
+test07	4
+test08	4
+test09	0
+test10	0
+test11	0
+test12	0
+test13	0
+test14	0
+test15	0
+test16	0
+test17	5
+test18	5
+test19	5
+test20	5
+addtional adjustment	0
+Total	76
+Adjusted Total	76
+Late Penalty	0
+Final Grade	76
+Remarks	test09-16 0/3 for aborted program with message: terminate called after throwing an instance of 'pqxx::syntax_error' what(): ERROR: syntax error at or near "AND" LINE 1: SELECT * FROM PLAYER AND WHERE RPG >= 8 AND RPG <= 10 ;

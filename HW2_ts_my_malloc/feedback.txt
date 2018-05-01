@@ -1,0 +1,24 @@
+lock_1t_thread	3.5
+lock_2t_thread	3.5
+lock_4t_thread	3.5
+nolock_1t_thread	3.5
+nolock_2t_thread	3.5
+nolock_4t_thread	3.5
+lock_1t_malloc_free	3.5
+lock_2t_malloc_free	3.5
+lock_4t_malloc_free	3.5
+nolock_1t_malloc_free	3.5
+nolock_2t_malloc_free	3.5
+nolock_4t_malloc_free	3.5
+lock_1t_malloc_free_change_thread	3.5
+lock_2t_malloc_free_change_thread	3.5
+lock_4t_malloc_free_change_thread	3.5
+nolock_1t_malloc_free_change_thread	3.5
+nolock_2t_malloc_free_change_thread	3.5
+nolock_4t_malloc_free_change_thread	3.5
+lock_4t_measurement	3.5
+nolock_4t_measurement	3.5
+Report: Good description of thread-safe code	10
+Report: Clear presentation of performance results	10
+Report: Good comparison based on analysis of results	10
+Total	100

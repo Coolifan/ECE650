@@ -1,0 +1,18 @@
+FF test1	4
+BF test1	4
+FF test2	4
+BF test2	4
+FF test3	4
+BF test3	4
+FF equal size	6
+BF equal size	4
+FF small range	6
+BF small range	6
+FF large range	6
+BF large range	6
+Coalescing	10
+Report: Good description of FF/BF implementations	10
+Report: Clear presentation of performance results	10
+Report: Good comparison and analysis of results	10
+Total	98
+Comments	For bf equal size test: 4/6 because it took more than 15min to run.

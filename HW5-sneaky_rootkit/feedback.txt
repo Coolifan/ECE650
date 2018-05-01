@@ -1,0 +1,12 @@
+Test 1	4
+Test 2	4
+Test 3	4
+Test 4	4
+Test 5	4
+Test 6	20
+Test 7	10
+Test 8	10
+Test 9	20
+Test 10	20
+Additional	0
+Total	100

@@ -1,0 +1,28 @@
+test01	2
+test02	2
+test03	6
+test04	6
+test05	6
+test06	6
+test07	6
+test08	6
+test09	5
+test10	5
+test11	1
+test12	1
+test13	1
+test14	1
+written01	5
+written02	5
+written03	5
+written04	5
+written05	5
+written06	5
+addtional adjustment	0
+Programming Grade	54
+Adjusted Programming Grade (Good faith effort score)	54
+Written Grade	30
+Total	84
+Late Penalty	0
+Final Grade	84
+Remarks	test11-14 1/5 for not playing the game after set up.
